@@ -1,0 +1,35 @@
+http:// {
+	root /data/grav
+	fastcgi / unix:/run/php/sock php
+	gzip
+
+	rewrite {
+		to {uri} {uri}/ /index.php?_url={path_escaped}&{query}
+	}
+
+	rewrite {
+		regexp ^/(system|vendor)/.*\.(txt|xml|md|html|yaml|php|pl|py|cgi|twig|sh|bat)$
+		to     /.git
+	}
+	rewrite {
+		regexp ^/user/.*\.(txt|md|yaml|php|pl|py|cgi|twig|sh|bat)$
+		to     /.git
+	}
+	rewrite {
+		regexp ^/(LICENSE.txt|composer.lock|composer.json|nginx.conf|web.config|htaccess.txt|\.htaccess)
+		to     /.git
+	}
+
+	internal /.git
+	internal /cache
+	internal /bin
+	internal /logs
+	internal /backup
+	internal /tests
+
+	expires {
+		match ^/images/.*$ 14d
+		match ^/(resources|script)/.*$ 90d
+		match ^/style/base.css$ 90d
+	}
+}

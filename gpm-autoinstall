@@ -1,0 +1,41 @@
+#!/bin/sh
+
+cd /data/grav
+
+INSTALLED_PLUGINS=`php bin/gpm index -I -q -n | grep '^| [0-9]' | sed -E -e 's/^\|([^|]+\|){2} //g' -e 's/ .*$//g'`
+
+# Update grav
+php bin/gpm self-upgrade -f -y
+
+# Uninstall
+for plugin in $INSTALLED_PLUGINS; do
+	wanted=
+	for p in $GRAV_PLUGINS; do
+		if [ "$p" = "$plugin" ]; then
+			wanted=true
+		fi
+	done
+	if [ -z "$wanted" ]; then
+		php bin/gpm uninstall -y "$plugin"
+	fi
+done
+
+# Install
+for plugin in $GRAV_PLUGINS; do
+	installed=
+	for p in $INSTALLED_PLUGINS; do
+		if [ "$p" = "$plugin" ]; then
+			installed=true
+		fi
+	done
+	if [ -z "$installed" ]; then
+		php bin/gpm install -y "$plugin"
+	fi
+done
+
+# Update other plugins
+php bin/gpm update
+
+# Run every 24h
+sleep 8 #6400
+exec /usr/local/bin/gpm-autoinstall
